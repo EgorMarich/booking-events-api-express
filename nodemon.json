@@ -1,0 +1,6 @@
+{
+  "watch": ["**/*"],
+  "ext": "ts,json",
+  "ignore": ["node_modules", "dist", "logs"],
+  "exec": "node --loader ts-node/esm app.ts"
+}
