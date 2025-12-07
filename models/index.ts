@@ -5,44 +5,68 @@ interface EventAttributes {
   id: number;
   name: string;
   total_seats: number;
+  description: string;
+  location: string;
+  dateTime: string;
 }
 
 interface EventCreationAttributes extends Optional<EventAttributes, 'id'> {}
 
-export class Event extends Model<EventAttributes, EventCreationAttributes> implements EventAttributes {
+export class Event
+  extends Model<EventAttributes, EventCreationAttributes>
+  implements EventAttributes
+{
   public id!: number;
   public name!: string;
   public total_seats!: number;
+  public description!: string;
+  public location!: string;
+  public dateTime!: string;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
 
-Event.init({
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
+Event.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    dateTime: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: 'date_time',
+    },
+    location: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    total_seats: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 1,
+      },
+    },
   },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false
+  {
+    sequelize,
+    modelName: 'Event',
+    tableName: 'events',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   },
-  total_seats: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    validate: {
-      min: 1
-    }
-  }
-}, {
-  sequelize,
-  modelName: 'Event',
-  tableName: 'events',
-  timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at'
-});
-
+);
 
 interface BookingAttributes {
   id: number;
@@ -52,7 +76,10 @@ interface BookingAttributes {
 
 interface BookingCreationAttributes extends Optional<BookingAttributes, 'id'> {}
 
-export class Booking extends Model<BookingAttributes, BookingCreationAttributes> implements BookingAttributes {
+export class Booking
+  extends Model<BookingAttributes, BookingCreationAttributes>
+  implements BookingAttributes
+{
   public id!: number;
   public event_id!: number;
   public user_id!: string;
@@ -60,38 +87,41 @@ export class Booking extends Model<BookingAttributes, BookingCreationAttributes>
   public readonly updated_at!: Date;
 }
 
-Booking.init({
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
+Booking.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    event_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'events',
+        key: 'id',
+      },
+    },
+    user_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
-  event_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'events',
-      key: 'id'
-    }
+  {
+    sequelize,
+    modelName: 'Booking',
+    tableName: 'bookings',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    indexes: [
+      {
+        unique: true,
+        fields: ['event_id', 'user_id'],
+      },
+    ],
   },
-  user_id: {
-    type: DataTypes.STRING,
-    allowNull: false
-  }
-}, {
-  sequelize,
-  modelName: 'Booking',
-  tableName: 'bookings',
-  timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
-  indexes: [
-    {
-      unique: true,
-      fields: ['event_id', 'user_id']
-    }
-  ]
-});
+);
 
 Event.hasMany(Booking, { foreignKey: 'event_id', as: 'bookings' });
 Booking.belongsTo(Event, { foreignKey: 'event_id', as: 'event' });
